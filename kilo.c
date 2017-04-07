@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <unistd.h>
 #include <termios.h>
 #include <stdio.h>
@@ -24,7 +25,8 @@ void enableRawMode () {
     tcgetattr(STDIN_FILENO, &raw);
 
     // we are doing bitwise AND operator on the ECHO which is a BITWISE value
-    raw.c_lflag &= !(ECHO);
+    // also disable the canonical mode with ICANON
+    raw.c_lflag &= !(ECHO | ICANON);
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -39,7 +41,15 @@ int main () {
     // it does so till it scans for Ctrl + D exit character
     // both 'read' and 'STDIN_FILENO' is defined in unistd.h
     // also exit when we type the letter 'q'
-    while( read(STDIN_FILENO, &c, 1) == 1 && c != 'q' );
+    while( read(STDIN_FILENO, &c, 1) == 1 && c != 'q' ) {
+        if (iscntrl(c)) {
+            // printing non printable characters
+            printf("%d \n", c);
+        } else {
+            // printable characters
+            printf("%d ('%c') \n", c, c);
+        }
+    }
 
     return 0;
 }
