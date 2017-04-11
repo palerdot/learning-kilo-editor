@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* defines */
+// ANDs a character with bitwise 00011111
+// converts the first 3 bits to zero which is similar to what CTRL KEY does
+#define CTRL_KEY(k) ((k) & 0x1f)
 
 /** data **/
 // struct for storing current terminal's original attributes
@@ -67,33 +71,51 @@ void enableRawMode () {
     if( tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1 ) die("tcsetattr");
 }
 
+/** input processing methods **/
+char editorReadKey() {
+
+    int input_read;
+        // valid_input_read;
+
+    char c;
+
+    // read the input
+    // input_read = read(STDIN_FILENO, &c, 1);
+    // check if it is a valid input
+    // valid_input_read = (input_read != 1);
+
+    // if (valid_input_read) {
+    while ((input_read = read(STDIN_FILENO, &c, 1)) != 1) {
+        // handle error cases
+        if (input_read == -1 && errno != EAGAIN) {
+            die("read");
+        }
+    }
+    return c;
+}
+
+// process individual key presses
+void processKeyPress() {
+
+    char c = editorReadKey();
+
+    switch (c) {
+        case CTRL_KEY('q'):
+            exit(0);
+            break;
+
+        default:
+            break;
+    }
+}
 
 /** init **/
 int main () {
 
     enableRawMode();
 
-    char c; // gets the current pressed char from the terminal
-    // following line scans for the input character
-    // it does so till it scans for Ctrl + D exit character
-    // both 'read' and 'STDIN_FILENO' is defined in unistd.h
-    // also exit when we type the letter 'q'
     while (1) {
-        c = '\0';
-        if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) die("read");
-        if (iscntrl(c)) {
-            // printing non printable characters
-            //carriage return: \r is used to return to the start of the line
-            //new line: \n is used to return to a new line
-            printf("%d \r\n", c);
-        } else {
-            // printable characters
-            printf("%d ('%c') \r\n", c, c);
-        }
-        // break the input queue if we encounter 'q'
-        if (c == 'q') {
-            break;
-        }
+        processKeyPress();
     }
 
     return 0;
