@@ -74,23 +74,18 @@ void enableRawMode () {
 /** input processing methods **/
 char editorReadKey() {
 
-    int input_read;
-        // valid_input_read;
+    int input_read,
+        valid_input_read;
 
     char c;
 
-    // read the input
-    // input_read = read(STDIN_FILENO, &c, 1);
-    // check if it is a valid input
-    // valid_input_read = (input_read != 1);
+    do {
+        input_read = read(STDIN_FILENO, &c, 1);
+        valid_input_read = (input_read != 1);
+        // handling error when reading input
+        if (input_read == -1 && errno != EAGAIN) die("read");
+    } while (valid_input_read);
 
-    // if (valid_input_read) {
-    while ((input_read = read(STDIN_FILENO, &c, 1)) != 1) {
-        // handle error cases
-        if (input_read == -1 && errno != EAGAIN) {
-            die("read");
-        }
-    }
     return c;
 }
 
