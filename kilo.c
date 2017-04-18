@@ -17,6 +17,10 @@ struct termios orig_terminal_attrs;
 
 /** error handling **/
 void die(const char *s) {
+    // when there is an error, clear the screen and restore the cursor positions
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+    write(STDOUT_FILENO, "\x1b[H", 3);
+
     perror(s);
     exit(1);
 }
@@ -89,6 +93,23 @@ char editorReadKey() {
     return c;
 }
 
+/** output **/
+
+void editorDrawRows() {
+    int y;
+    for (y = 0; y < 24; y++) {
+        write(STDOUT_FILENO, "~\r\n", 3);
+    }
+}
+
+
+void editorRefreshScreen() {
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+    write(STDOUT_FILENO, "\x1b[H", 3);
+
+    editorDrawRows();
+    write(STDOUT_FILENO, "\x1b[H", 3);
+}
 // process individual key presses
 void processKeyPress() {
 
@@ -110,6 +131,7 @@ int main () {
     enableRawMode();
 
     while (1) {
+        editorRefreshScreen();
         processKeyPress();
     }
 
